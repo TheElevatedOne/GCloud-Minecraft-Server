@@ -1,2 +1,77 @@
 # GCloud-Minecraft-Server
-A tutorial on how to run Minecraft Server on Google Cloud Service
+---
+### This is my tutorial on how to run Minecraft Server on Google Cloud Compute VMs
+### It can be used for any minecraft server, but I will be focusing on **modded minecraft**, because I have more experience with it.
+---
+# 1. Create a new Google Account
+If you are a GCloud payer then skip this step, but if you want to run the minecraft server for free, please read.
+- Create a new GMail Account
+- Login to cloud.google.com and select **Free Trial**
+	- Free trial gives you 300$ (~275€) to use for the duration of 3 months, for free.
+	- You can use it for anything they offer, although you have some limitations.
+- If you haven't used gcloud on other account yet under your name, just fill out the information with your real info | If you have already used your real information on other account, you can use fake name, but real address (which is not yours)... the only real thing you must use is your credit card.
+- Now you're in Google Cloud
+# 2. Create a VM Instance
+- In the top-left corner click the three dashes, then select **Compute Engine** in the sidebar.
+- It will redirect you to a site where you enable the Compute Engine API (since it is not active by default), then it will redirect you to VM Instances (if not, go to three dashes and click Compute Engine again)
+- Create a new instance
+	- Name it whatever you want
+	- Select a region (regions in USA generally have more resources to choose from)
+	- Set your machine to **Compute-Optimized** and select the **C2D** CPU (AMD EPYC 7B13)
+	- Then in the dropdown set your cores to the max (4 cores - 8 threads), which also gives you 32GB of RAM, which is enough for a modded server
+	- Scroll Down and set your **Boot Disk**
+		- Operating System: Ubuntu
+		- Version: 22.04 x64/86 or newer if available
+		- Type: SSD
+		- 30GB for a normal server | 50GB if you want to pregenerate chunks | 100GB+ If you want to run dynmap/bluemap
+	- In Firewall set allow all HTTP & HTTPS traffic
+	- Advanced Options:
+		- Click Security -> Manage Access -> Add Item (Public SSH Key)
+		- [Tutorial on how to](https://cloud.google.com/compute/docs/connect/create-ssh-keys)
+		- Copy the text from your generated public key and paste it into the Instance SSH Input Field
+- Setup Networking
+	- Go to three dashes -> VPC Network
+	- Click on **IP Addresses** in the side menu
+		- Click **Reserve External Static IP Address**
+		- Name it, and connect it to the zone/location you chose for your Instance
+	- Click on **Firewall** in the side menu
+		- Click **Create a Firewall Rule**
+		- Name it
+		- Targets: All Instances in the network
+		- Source IPv4 ranges: 0.0.0.0/0
+		- Most ports you may use are TCP, but check with your mods documentation (e.g. Simple Voice Chat uses UDP)
+		- Open the default ones, in the field under TCP write 80,25565
+		- Save the Rule, and Restart the Instance in Compute Engine
+# 3. Setup The Instance
+- Connect to the Instance using SSH
+	- In terminal/cmd use command `ssh -i ./path/to/the/public/ssh/key <your username/the characters before @gmail.com>@<your instances external ip address>` (For the path on Windows use Backslashes instead; Your external ip is shown Compute Engine next to your machines name)
+	- connect
+	- run `sudo apt update && sudo apt upgrade -y` and wait for it to finish
+	- create a directory for your server
+	- Download and install Java
+		- run `wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb` in your home directory and install it using apt to install all dependencies `sudo apt install ./<jdk deb>`
+	- Install Server
+		- Move into your server directory
+		- Download the server installer of your choice and install it
+		- run `java -jar <your server launcher file>`
+		- run `nano eula.txt` and change it to true
+		- run `nano start-server.sh` and write into it `java -Xms4G -Xmx28G -jar <your server launcher file>`
+		- run `chmod a+x start-server.sh`
+		- now you can run the server using `./start-server.sh`
+	- Move Mods and Configs to your server
+		- Use Filezilla Client which is both for Linux and Windows, and use SFTP (SSH FTP) using your SSH private key
+	- Setup your Firewall
+		- run `sudo apt install ufw -y`
+		- run `sudo ufw allow ssh`
+		- run `sudo ufw allow 25565`
+		- run `sudo ufw enable`
+		- disconnect and reconnect your ssh to make sure
+	- Run the server
+		- run `./start-server.sh` in your server directory
+		- wait for it to boot
+		- connect to it using your client - IP is `<Your VMs External IP>:25565`
+- You're running a Minecraft server on Google Cloud
+- To make sure you don't have to have the server console open at all times use `screen`
+	- On the server run `screen`
+	- Now start the Minecraft Server and Close the Terminal Window
+	- If you open a new ssh connection and run `screen -r` you will be connected to your Server Console
