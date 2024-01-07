@@ -1,5 +1,4 @@
 # GCloud-Minecraft-Server
----
 ### This is my tutorial on how to run Minecraft Server on Google Cloud Compute VMs
 ### It can be used for any minecraft server, but I will be focusing on **modded minecraft**, because I have more experience with it.
 ---
